@@ -21,4 +21,4 @@ A modern implementation of the classic Tic-Tac-Toe game with advanced AI opponen
 
 ## Play Online
 
-Visit [https://YOUR_USERNAME.github.io/ttt/](https://YOUR_USERNAME.github.io/ttt/) to play the game!
+Visit [https://millkyx.github.io/Ultimate-Tic-Tac-Toe/](https://millkyx.github.io/Ultimate-Tic-Tac-Toe/) to play the game!
