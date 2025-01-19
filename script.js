@@ -12,6 +12,8 @@ const toggleEngineButton = document.getElementById('toggleEngine');
 const engineDepthSelect = document.getElementById('engineDepth');
 const bestMovesDiv = document.getElementById('bestMoves');
 const evaluationDiv = document.getElementById('evaluation');
+const evaluationFill = document.querySelector('.evaluation-fill');
+const evaluationText = document.querySelector('.evaluation-text');
 
 let currentPlayer = 'x';
 let gameActive = true;
@@ -387,6 +389,7 @@ function highlightWinningCombination() {
 toggleEngineButton.addEventListener('click', () => {
     engineVisible = !engineVisible;
     enginePanel.classList.toggle('visible');
+    toggleEngineButton.textContent = engineVisible ? 'Hide Engine' : 'Show Engine';
     if (engineVisible) {
         updateEngineAnalysis();
     }
@@ -399,9 +402,141 @@ engineDepthSelect.addEventListener('change', () => {
 });
 
 function updateEngineAnalysis() {
-    const depth = parseInt(engineDepthSelect.value);
-    const moves = findBestMoves(gameState, depth);
-    displayEngineAnalysis(moves);
+    if (!engineVisible) return;
+
+    bestMovesDiv.innerHTML = '';
+    clearSuggestions();
+
+    // Получаем ходы как из карты, так и из минимакса
+    const mapMoves = getBestMoveFromMap(gameState, currentPlayer);
+    const minimaxMoves = findBestMoves(gameState, parseInt(engineDepthSelect.value));
+
+    // Комбинируем результаты, приоритет отдаем карте
+    const moves = mapMoves.map(mapMove => {
+        const minimaxMove = minimaxMoves.find(m => m.position === mapMove.position);
+        return {
+            position: mapMove.position,
+            score: mapMove.score,
+            isFromMap: true,
+            minimaxScore: minimaxMove ? minimaxMove.score : 0
+        };
+    });
+
+    // Сортируем ходы
+    moves.sort((a, b) => b.score - a.score);
+
+    // Показываем топ-3 хода
+    moves.slice(0, 3).forEach((move, index) => {
+        const position = getCellPosition(move.position);
+        const moveElement = document.createElement('div');
+        moveElement.className = 'move-suggestion';
+        
+        moveElement.innerHTML = `
+            <span>${index + 1}. ${position}</span>
+            <span class="move-score">${move.score}%${move.isFromMap ? ' ★' : ''}</span>
+        `;
+        bestMovesDiv.appendChild(moveElement);
+
+        // Добавляем подсказку на доску
+        const cell = cells[move.position];
+        if (!cell.classList.contains('x') && !cell.classList.contains('o')) {
+            cell.classList.add(`suggestion-${currentPlayer}`);
+            
+            const scoreOverlay = document.createElement('div');
+            scoreOverlay.className = 'suggestion-score';
+            scoreOverlay.textContent = `${move.score}%${move.isFromMap ? ' ★' : ''}`;
+            cell.appendChild(scoreOverlay);
+        }
+    });
+
+    // Обновляем оценку позиции
+    if (moves.length > 0) {
+        const bestScore = moves[0].score;
+        evaluationFill.style.width = `${bestScore}%`;
+        evaluationText.textContent = `${currentPlayer.toUpperCase()} evaluation: ${bestScore}%`;
+    }
+}
+
+function getBestMoveFromMap(board, player) {
+    // Первый ход для X
+    if (player === 'x' && board.every(cell => cell === '')) {
+        return [0, 2, 6, 8].map(i => ({ position: i, score: 100 })); // Углы - лучшие первые ходы
+    }
+
+    // Первый ход для O
+    if (player === 'o' && board.filter(cell => cell !== '').length === 1) {
+        if (board[4] === '') {
+            return [{ position: 4, score: 100 }]; // Центр - лучший первый ход для O
+        }
+    }
+
+    // Проверяем выигрышные комбинации
+    for (const line of winningCombinations) {
+        const [a, b, c] = line;
+        
+        // Проверяем возможность победы
+        if (board[a] === player && board[b] === player && board[c] === '') {
+            return [{ position: c, score: 100 }];
+        }
+        if (board[a] === player && board[c] === player && board[b] === '') {
+            return [{ position: b, score: 100 }];
+        }
+        if (board[b] === player && board[c] === player && board[a] === '') {
+            return [{ position: a, score: 100 }];
+        }
+    }
+
+    // Блокируем победу противника
+    const opponent = player === 'x' ? 'o' : 'x';
+    for (const line of winningCombinations) {
+        const [a, b, c] = line;
+        
+        if (board[a] === opponent && board[b] === opponent && board[c] === '') {
+            return [{ position: c, score: 90 }];
+        }
+        if (board[a] === opponent && board[c] === opponent && board[b] === '') {
+            return [{ position: b, score: 90 }];
+        }
+        if (board[b] === opponent && board[c] === opponent && board[a] === '') {
+            return [{ position: a, score: 90 }];
+        }
+    }
+
+    // Стратегические ходы для X
+    if (player === 'x') {
+        // Если O в центре - занимаем противоположный угол
+        if (board[4] === 'o') {
+            if (board[0] === 'x' && board[8] === '') return [{ position: 8, score: 85 }];
+            if (board[2] === 'x' && board[6] === '') return [{ position: 6, score: 85 }];
+            if (board[6] === 'x' && board[2] === '') return [{ position: 2, score: 85 }];
+            if (board[8] === 'x' && board[0] === '') return [{ position: 0, score: 85 }];
+        }
+        
+        // Создаем вилку через углы
+        const corners = [0, 2, 6, 8].filter(i => board[i] === '');
+        if (corners.length > 0) {
+            return corners.map(i => ({ position: i, score: 80 }));
+        }
+    }
+
+    // Стратегические ходы для O
+    if (player === 'o') {
+        // Если X в углу - центр
+        if (board[4] === '' && [0, 2, 6, 8].some(i => board[i] === 'x')) {
+            return [{ position: 4, score: 85 }];
+        }
+        
+        // Защита от вилки - занимаем сторону
+        const sides = [1, 3, 5, 7].filter(i => board[i] === '');
+        if (sides.length > 0) {
+            return sides.map(i => ({ position: i, score: 75 }));
+        }
+    }
+
+    // Если нет лучших ходов - любой свободный
+    return board
+        .map((cell, index) => ({ position: index, score: cell === '' ? 50 : 0 }))
+        .filter(move => move.score > 0);
 }
 
 function findBestMoves(board, depth) {
@@ -425,54 +560,6 @@ function findBestMoves(board, depth) {
     // Sort moves by score
     moves.sort((a, b) => b.score - a.score);
     return moves;
-}
-
-function displayEngineAnalysis(moves) {
-    bestMovesDiv.innerHTML = '';
-    clearSuggestions();
-    
-    // Display top 3 moves
-    const topMoves = moves.slice(0, 3);
-    topMoves.forEach((move, index) => {
-        const moveElement = document.createElement('div');
-        moveElement.className = 'move-suggestion';
-        
-        const position = getCellPosition(move.position);
-        const scoreNormalized = Math.tanh(move.score / 100);
-        const scorePercentage = ((scoreNormalized + 1) / 2 * 100).toFixed(1);
-        
-        moveElement.innerHTML = `
-            <span>${index + 1}. ${position}</span>
-            <span class="move-score">${scorePercentage}%</span>
-        `;
-        bestMovesDiv.appendChild(moveElement);
-
-        // Add visual suggestion on the board
-        const cell = cells[move.position];
-        if (!cell.classList.contains('x') && !cell.classList.contains('o')) {
-            cell.classList.add(`suggestion-${currentPlayer}`);
-            
-            // Add score overlay
-            const scoreOverlay = document.createElement('div');
-            scoreOverlay.className = 'suggestion-score';
-            scoreOverlay.textContent = `${scorePercentage}%`;
-            cell.appendChild(scoreOverlay);
-        }
-    });
-    
-    // Update evaluation bar
-    const bestScore = moves[0]?.score || 0;
-    const normalizedScore = Math.tanh(bestScore / 100);
-    const evaluationPercentage = ((normalizedScore + 1) / 2 * 100).toFixed(1);
-    
-    evaluationDiv.innerHTML = `
-        <div class="evaluation-bar">
-            <div class="evaluation-fill" style="width: ${evaluationPercentage}%"></div>
-        </div>
-        <div style="text-align: center; margin-top: 5px;">
-            ${currentPlayer.toUpperCase()} evaluation: ${evaluationPercentage}%
-        </div>
-    `;
 }
 
 function getCellPosition(index) {

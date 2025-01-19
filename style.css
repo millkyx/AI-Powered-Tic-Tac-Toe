@@ -217,13 +217,16 @@ h1 {
 }
 
 .engine-panel {
-    position: relative;
-    width: 100%;
-    max-height: none;
-    margin-top: 25px;
+    display: none;
+    background: rgba(44, 49, 60, 0.95);
     padding: 25px;
     border-radius: 16px;
-    background: rgba(44, 49, 60, 0.95);
+    width: 100%;
+    margin-top: 25px;
+}
+
+.engine-panel.visible {
+    display: block;
 }
 
 .engine-title {
@@ -282,11 +285,11 @@ h1 {
 }
 
 .evaluation-section {
-    margin-top: 25px;
+    margin-top: 20px;
 }
 
 .evaluation-title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     color: #ff6b6b;
     margin-bottom: 15px;
 }
@@ -294,9 +297,19 @@ h1 {
 .evaluation-bar {
     height: 12px;
     border-radius: 6px;
-    overflow: hidden;
     background: rgba(255, 255, 255, 0.1);
     margin: 10px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.evaluation-fill {
+    position: absolute;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+    transition: width 0.3s ease;
 }
 
 .evaluation-text {
