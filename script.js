@@ -77,89 +77,77 @@ function makeRandomMove() {
 
 // AI Implementation using Minimax algorithm
 function evaluateBoard(board) {
-    // Check for winning moves
-    const result = checkWinningMove(board);
-    if (result === 'o') return 100;
-    if (result === 'x') return -100;
-    if (result === 'draw') return 0;
+    // Проверяем выигрыш
+    const winner = checkWinningMove(board);
+    if (winner === 'x') return -100;
+    if (winner === 'o') return 100;
+    if (board.every(cell => cell !== '')) return 0;
 
-    // Strategic positions evaluation
+    // Оцениваем позицию
     let score = 0;
-    
-    // Corners are valuable
+
+    // Проверяем центр (важная позиция)
+    if (board[4] === 'o') score += 3;
+    if (board[4] === 'x') score -= 3;
+
+    // Проверяем углы
     const corners = [0, 2, 6, 8];
     corners.forEach(corner => {
-        if (board[corner] === 'o') score += 3;
-        else if (board[corner] === 'x') score -= 3;
+        if (board[corner] === 'o') score += 2;
+        if (board[corner] === 'x') score -= 2;
     });
 
-    // Center is valuable
-    if (board[4] === 'o') score += 5;
-    else if (board[4] === 'x') score -= 5;
-
-    // Check for potential traps
-    score += evaluateTraps(board);
-
-    return score;
-}
-
-function evaluateTraps(board) {
-    let score = 0;
-    
-    // Check for corner trap setups
-    const trapPatterns = [
-        [0, 8], [2, 6], // Diagonal corners
-        [0, 2], [6, 8], // Horizontal corners
-        [0, 6], [2, 8]  // Vertical corners
-    ];
-
-    trapPatterns.forEach(pattern => {
-        if (board[pattern[0]] === 'o' && board[pattern[1]] === 'o') {
-            score += 8; // High value for potential trap
-        }
+    // Проверяем возможные линии
+    winningCombinations.forEach(line => {
+        const [a, b, c] = line;
+        const lineStr = board[a] + board[b] + board[c];
+        
+        // Для O
+        if (lineStr.match(/o{2}$/)) score += 10;
+        if (lineStr.match(/o{1}$/)) score += 1;
+        
+        // Для X
+        if (lineStr.match(/x{2}$/)) score -= 10;
+        if (lineStr.match(/x{1}$/)) score -= 1;
     });
-
-    // Check for blocking opponent's traps
-    if (board[0] === 'x' && board[8] === '') score -= 2;
-    if (board[2] === 'x' && board[6] === '') score -= 2;
-    if (board[6] === 'x' && board[2] === '') score -= 2;
-    if (board[8] === 'x' && board[0] === '') score -= 2;
 
     return score;
 }
 
 function minimax(board, depth, alpha, beta, isMaximizing) {
-    const result = checkWinningMove(board);
-    if (result !== null || depth === 0) {
-        return evaluateBoard(board);
-    }
+    // Проверяем терминальные состояния
+    const winner = checkWinningMove(board);
+    if (winner === 'x') return -100;
+    if (winner === 'o') return 100;
+    if (board.every(cell => cell !== '')) return 0;
+    if (depth === 0) return evaluateBoard(board);
 
     if (isMaximizing) {
-        let bestScore = -Infinity;
+        let maxEval = -Infinity;
         for (let i = 0; i < board.length; i++) {
             if (board[i] === '') {
                 board[i] = 'o';
-                const score = minimax(board, depth - 1, alpha, beta, false);
+                const eval = minimax(board, depth - 1, alpha, beta, false);
                 board[i] = '';
-                bestScore = Math.max(score, bestScore);
-                alpha = Math.max(alpha, score);
+                maxEval = Math.max(maxEval, eval);
+                alpha = Math.max(alpha, eval);
                 if (beta <= alpha) break;
             }
         }
-        return bestScore;
+        return maxEval;
     } else {
-        let bestScore = Infinity;
+        let minEval = Infinity;
         for (let i = 0; i < board.length; i++) {
             if (board[i] === '') {
                 board[i] = 'x';
-                const score = minimax(board, depth - 1, alpha, beta, true);
+                const eval = minimax(board, depth - 1, alpha, beta, true);
                 board[i] = '';
-                bestScore = Math.min(score, bestScore);
-                beta = Math.min(beta, score);
+                minEval = Math.min(minEval, eval);
+                beta = Math.min(beta, eval);
                 if (beta <= alpha) break;
             }
         }
-        return bestScore;
+        return minEval;
     }
 }
 
@@ -458,85 +446,98 @@ function updateEngineAnalysis() {
 }
 
 function getBestMoveFromMap(board, player) {
-    // Первый ход для X
-    if (player === 'x' && board.every(cell => cell === '')) {
-        return [0, 2, 6, 8].map(i => ({ position: i, score: 100 })); // Углы - лучшие первые ходы
-    }
-
-    // Первый ход для O
-    if (player === 'o' && board.filter(cell => cell !== '').length === 1) {
-        if (board[4] === '') {
-            return [{ position: 4, score: 100 }]; // Центр - лучший первый ход для O
+    // Первый ход
+    if (board.every(cell => cell === '')) {
+        if (player === 'x') {
+            // X начинает с угла
+            return [0, 2, 6, 8].map(i => ({ position: i, score: 100 }));
+        } else {
+            // O начинает с центра
+            return [{ position: 4, score: 100 }];
         }
     }
 
-    // Проверяем выигрышные комбинации
+    // Проверяем выигрышный ход
     for (const line of winningCombinations) {
         const [a, b, c] = line;
+        const cells = [
+            { pos: a, val: board[a] },
+            { pos: b, val: board[b] },
+            { pos: c, val: board[c] }
+        ];
         
-        // Проверяем возможность победы
-        if (board[a] === player && board[b] === player && board[c] === '') {
-            return [{ position: c, score: 100 }];
-        }
-        if (board[a] === player && board[c] === player && board[b] === '') {
-            return [{ position: b, score: 100 }];
-        }
-        if (board[b] === player && board[c] === player && board[a] === '') {
-            return [{ position: a, score: 100 }];
+        const playerCells = cells.filter(cell => cell.val === player);
+        const emptyCells = cells.filter(cell => cell.val === '');
+        
+        if (playerCells.length === 2 && emptyCells.length === 1) {
+            return [{ position: emptyCells[0].pos, score: 100 }];
         }
     }
 
-    // Блокируем победу противника
+    // Блокируем выигрыш противника
     const opponent = player === 'x' ? 'o' : 'x';
     for (const line of winningCombinations) {
         const [a, b, c] = line;
+        const cells = [
+            { pos: a, val: board[a] },
+            { pos: b, val: board[b] },
+            { pos: c, val: board[c] }
+        ];
         
-        if (board[a] === opponent && board[b] === opponent && board[c] === '') {
-            return [{ position: c, score: 90 }];
-        }
-        if (board[a] === opponent && board[c] === opponent && board[b] === '') {
-            return [{ position: b, score: 90 }];
-        }
-        if (board[b] === opponent && board[c] === opponent && board[a] === '') {
-            return [{ position: a, score: 90 }];
+        const opponentCells = cells.filter(cell => cell.val === opponent);
+        const emptyCells = cells.filter(cell => cell.val === '');
+        
+        if (opponentCells.length === 2 && emptyCells.length === 1) {
+            return [{ position: emptyCells[0].pos, score: 90 }];
         }
     }
 
-    // Стратегические ходы для X
+    // Стратегические ходы
     if (player === 'x') {
-        // Если O в центре - занимаем противоположный угол
+        // Стратегия для X
         if (board[4] === 'o') {
-            if (board[0] === 'x' && board[8] === '') return [{ position: 8, score: 85 }];
-            if (board[2] === 'x' && board[6] === '') return [{ position: 6, score: 85 }];
-            if (board[6] === 'x' && board[2] === '') return [{ position: 2, score: 85 }];
-            if (board[8] === 'x' && board[0] === '') return [{ position: 0, score: 85 }];
+            // Если O в центре, занимаем противоположный угол
+            const corners = [
+                [0, 8],
+                [2, 6]
+            ];
+            for (const [a, b] of corners) {
+                if (board[a] === 'x' && board[b] === '') {
+                    return [{ position: b, score: 85 }];
+                }
+                if (board[b] === 'x' && board[a] === '') {
+                    return [{ position: a, score: 85 }];
+                }
+            }
         }
         
         // Создаем вилку через углы
-        const corners = [0, 2, 6, 8].filter(i => board[i] === '');
-        if (corners.length > 0) {
-            return corners.map(i => ({ position: i, score: 80 }));
+        const emptyCorners = [0, 2, 6, 8].filter(i => board[i] === '');
+        if (emptyCorners.length > 0) {
+            return emptyCorners.map(i => ({ position: i, score: 80 }));
         }
-    }
-
-    // Стратегические ходы для O
-    if (player === 'o') {
-        // Если X в углу - центр
-        if (board[4] === '' && [0, 2, 6, 8].some(i => board[i] === 'x')) {
+    } else {
+        // Стратегия для O
+        if (board[4] === '') {
             return [{ position: 4, score: 85 }];
         }
         
-        // Защита от вилки - занимаем сторону
-        const sides = [1, 3, 5, 7].filter(i => board[i] === '');
-        if (sides.length > 0) {
-            return sides.map(i => ({ position: i, score: 75 }));
+        // Защита от вилки
+        const corners = [0, 2, 6, 8].filter(i => board[i] === 'x').length;
+        if (corners >= 2) {
+            const sides = [1, 3, 5, 7].filter(i => board[i] === '');
+            if (sides.length > 0) {
+                return sides.map(i => ({ position: i, score: 80 }));
+            }
         }
     }
 
-    // Если нет лучших ходов - любой свободный
-    return board
-        .map((cell, index) => ({ position: index, score: cell === '' ? 50 : 0 }))
-        .filter(move => move.score > 0);
+    // Если нет лучших ходов, используем минимакс
+    const minimaxMoves = findBestMoves(board, 5);
+    return minimaxMoves.map(move => ({
+        position: move.position,
+        score: Math.round((move.score + 100) / 2)
+    }));
 }
 
 function findBestMoves(board, depth) {
