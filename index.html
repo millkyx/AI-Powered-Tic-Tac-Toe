@@ -37,26 +37,26 @@
                 </div>
             </div>
             <div class="engine-panel" id="enginePanel">
-                <div class="engine-header">
-                    <h3>Engine Analysis</h3>
-                    <div class="depth-control">
-                        <label for="engineDepth">Depth:</label>
-                        <select id="engineDepth">
-                            <option value="3">3</option>
-                            <option value="5" selected>5</option>
-                            <option value="7">7</option>
-                        </select>
-                    </div>
+                <div class="engine-title">
+                    Engine Analysis
+                    <select id="engineDepth">
+                        <option value="3">Depth: 3</option>
+                        <option value="5" selected>Depth: 5</option>
+                        <option value="7">Depth: 7</option>
+                    </select>
                 </div>
-                <div class="engine-moves">
-                    <div class="best-moves">
-                        <h4>Best Moves:</h4>
-                        <div id="bestMoves"></div>
+                
+                <div class="best-moves">
+                    <div class="best-moves-title">Best Moves:</div>
+                    <ul id="bestMoves"></ul>
+                </div>
+                
+                <div class="evaluation-section">
+                    <div class="evaluation-title">Evaluation:</div>
+                    <div class="evaluation-bar">
+                        <div class="evaluation-fill" id="evaluationFill"></div>
                     </div>
-                    <div class="position-evaluation">
-                        <h4>Evaluation:</h4>
-                        <div id="evaluation"></div>
-                    </div>
+                    <div class="evaluation-text" id="evaluationText"></div>
                 </div>
             </div>
         </div>
