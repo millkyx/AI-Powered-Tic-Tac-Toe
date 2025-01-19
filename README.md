@@ -1,6 +1,6 @@
-# Ultimate Tic-Tac-Toe
+# AI-Powered Tic-Tac-Toe
 
-A modern implementation of the classic Tic-Tac-Toe game with advanced AI opponent and engine analysis.
+A modern implementation of the classic Tic-Tac-Toe game with an advanced AI opponent and real-time move analysis engine.
 
 ## Features
 
@@ -21,7 +21,7 @@ A modern implementation of the classic Tic-Tac-Toe game with advanced AI opponen
 
 ## Play Online
 
-Visit [https://millkyx.github.io/Ultimate-Tic-Tac-Toe](https://millkyx.github.io/Ultimate-Tic-Tac-Toe) to play the game!
+Visit [https://millkyx.github.io/AI-Powered-Tic-Tac-Toe](https://millkyx.github.io/AI-Powered-Tic-Tac-Toe) to play the game online!
 
 ## License
 
