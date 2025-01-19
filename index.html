@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Tic-Tac-Toe</title>
+    <link rel="icon" type="image/png" href="ttt.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Ultimate Tic-Tac-Toe</h1>
+        <div class="game-controls">
+            <div class="status" id="status">Player X's Turn</div>
+            <div class="timer" id="timer">Time: 10s</div>
+            <div class="mode-switch">
+                <button id="toggleAI" class="mode-btn">Play vs AI</button>
+                <button id="toggleEngine" class="mode-btn">Show Engine</button>
+                <button id="toggleTimer" class="mode-btn">Timer: ON</button>
+            </div>
+        </div>
+        <div class="game-wrapper">
+            <div class="game-container">
+                <div class="board" id="board">
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                    <div class="cell" data-cell></div>
+                </div>
+            </div>
+            <div class="engine-panel" id="enginePanel">
+                <div class="engine-header">
+                    <h3>Engine Analysis</h3>
+                    <div class="depth-control">
+                        <label for="engineDepth">Depth:</label>
+                        <select id="engineDepth">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="7">7</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="engine-moves">
+                    <div class="best-moves">
+                        <h4>Best Moves:</h4>
+                        <div id="bestMoves"></div>
+                    </div>
+                    <div class="position-evaluation">
+                        <h4>Evaluation:</h4>
+                        <div id="evaluation"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="score-board">
+            <div class="score player-x">
+                Player X: <span id="scoreX">0</span>
+            </div>
+            <div class="score player-o">
+                Player O: <span id="scoreO">0</span>
+            </div>
+        </div>
+        <button id="restartButton" class="restart-btn">Restart Game</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
