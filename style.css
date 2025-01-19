@@ -326,3 +326,96 @@ h1 {
         transform: scale(1);
     }
 }
+
+/* Медиа-запрос для мобильных устройств */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 10px;
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .container {
+        width: 100%;
+        max-width: none;
+        padding: 10px;
+        margin: 0;
+        height: auto;
+    }
+
+    .game-controls {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .mode-switch {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .mode-btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .board {
+        width: 100%;
+        max-width: 350px;
+        aspect-ratio: 1;
+        margin: 20px auto;
+    }
+
+    .cell {
+        font-size: 40px;
+    }
+
+    .status {
+        font-size: 1.2rem;
+        margin: 10px 0;
+    }
+
+    .timer {
+        font-size: 1.2rem;
+        margin: 10px 0;
+    }
+
+    .score-board {
+        flex-direction: column;
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .score {
+        font-size: 1.1rem;
+    }
+
+    .engine-panel {
+        position: relative;
+        width: 100%;
+        max-height: none;
+        margin-top: 20px;
+        padding: 15px;
+    }
+
+    .engine-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #engineDepth {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
+
+/* Дополнительные стили для очень маленьких экранов */
+@media screen and (max-width: 320px) {
+    .board {
+        max-width: 280px;
+    }
+
+    .cell {
+        font-size: 32px;
+    }
+}
